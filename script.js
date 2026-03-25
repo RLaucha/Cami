@@ -5,7 +5,7 @@
 
 // 1. CATÁLOGO DE PLANES
 const PLANES = [
-  { id: 'plan-3', nombre: 'Plan 3', precio: 10, icono: '⚡', descripcion: 'Rutinas automáticas de 4 días y videos.' },
+  { id: 'plan-3', nombre: 'Plan 3', precio: 1000, icono: '⚡', descripcion: 'Rutinas automáticas de 4 días y videos.' },
   { id: 'plan-2', nombre: 'Plan 2', precio: 30000, icono: '🔥', descripcion: 'Rutina personalizada y guía nutricional.' },
   { id: 'plan-1', nombre: 'Plan 1', precio: 64200, icono: '🏆', descripcion: 'Entrenamiento 100% adaptado con viandas.' }
 ];
