@@ -138,6 +138,8 @@ function finalizarCompra() {
 
   // Reset del formulario de checkout
   document.getElementById('checkout-error').textContent = '';
+  document.getElementById('checkout-nombre').value = '';
+  document.getElementById('checkout-apellido').value = '';
   document.getElementById('checkout-email').value = '';
   document.querySelectorAll('input[name="genero"]').forEach(r => r.checked = false);
 
@@ -153,14 +155,26 @@ async function procesarPago(e) {
   const payBtn = document.getElementById('pay-btn');
   errorEl.textContent = '';
 
-  // 1. Validar email
+  // 1. Validar nombre y apellido
+  const nombre = document.getElementById('checkout-nombre').value.trim();
+  const apellido = document.getElementById('checkout-apellido').value.trim();
+  if (!nombre) {
+    errorEl.textContent = '⚠️ Ingresá tu nombre.';
+    return;
+  }
+  if (!apellido) {
+    errorEl.textContent = '⚠️ Ingresá tu apellido.';
+    return;
+  }
+
+  // 2. Validar email
   const email = document.getElementById('checkout-email').value.trim();
   if (!email || !email.includes('@')) {
     errorEl.textContent = '⚠️ Ingresá un email válido.';
     return;
   }
 
-  // 2. Validar género si Plan 3 está en el carrito
+  // 3. Validar género si Plan 3 está en el carrito
   const tienePlan3 = carrito.some(item => item.id === 'plan-3');
   let genero = null;
   if (tienePlan3) {
@@ -172,7 +186,7 @@ async function procesarPago(e) {
     genero = generoRadio.value;
   }
 
-  // 3. Armar los datos para el Worker
+  // 4. Armar los datos para el Worker
   const payload = {
     items: carrito.map(item => ({
       id: item.id,
@@ -182,10 +196,12 @@ async function procesarPago(e) {
       unit_price: item.precio
     })),
     email: email,
+    first_name: nombre,
+    last_name: apellido,
     genero: genero
   };
 
-  // 4. Estado de carga
+  // 5. Estado de carga
   const textoOriginal = payBtn.textContent;
   payBtn.textContent = 'Procesando...';
   payBtn.disabled = true;

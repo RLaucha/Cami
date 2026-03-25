@@ -16,9 +16,9 @@
 const ALLOWED_ORIGINS = [
   'http://localhost',
   'http://127.0.0.1',
-  'https://rlaucha.github.io', // Tu repo de GitHub Pages
-  'https://camifitness.com.ar', // Tu nuevo dominio
-  'https://www.camifitness.com.ar'
+  'https://rlaucha.github.io',
+  'https://camifit.com.ar',
+  'https://www.camifit.com.ar'
 ];
 
 function corsHeaders(origin) {
@@ -50,7 +50,7 @@ export default {
     try {
       // 1. Leer el body del frontend
       const body = await request.json();
-      const { items, email, genero } = body;
+      const { items, email, genero, first_name, last_name } = body;
 
       // 2. Validaciones básicas
       if (!items || !Array.isArray(items) || items.length === 0) {
@@ -79,18 +79,20 @@ export default {
           title: item.title,
           description: item.description || '',
           quantity: item.quantity,
-          unit_price: item.unit_price,
+          unit_price: Number(item.unit_price),
           currency_id: 'ARS'
         })),
         payer: {
-          email: email
+          email: email,
+          first_name: first_name || '',
+          last_name: last_name || ''
         },
         metadata: metadata,
         notification_url: 'https://hook.us2.make.com/mgx9j0c47o9i8lfmu2mxbm1woyb3x9mk',
         back_urls: {
-          success: 'https://camifitness.com/?status=success',
-          failure: 'https://camifitness.com/?status=failure',
-          pending: 'https://camifitness.com/?status=pending'
+          success: 'https://camifit.com.ar/?status=success',
+          failure: 'https://camifit.com.ar/?status=failure',
+          pending: 'https://camifit.com.ar/?status=pending'
         },
         auto_return: 'approved'
       };
