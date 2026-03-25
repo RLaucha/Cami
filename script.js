@@ -5,7 +5,7 @@
 
 // 1. CATÁLOGO DE PLANES
 const PLANES = [
-  { id: 'plan-3', nombre: 'Plan 3', precio: 1000, icono: '⚡', descripcion: 'Rutinas automáticas de 4 días y videos.' },
+  { id: 'plan-3', nombre: 'Plan 3', precio: 12000, icono: '⚡', descripcion: 'Rutinas automáticas de 4 días y videos.' },
   { id: 'plan-2', nombre: 'Plan 2', precio: 30000, icono: '🔥', descripcion: 'Rutina personalizada y guía nutricional.' },
   { id: 'plan-1', nombre: 'Plan 1', precio: 64200, icono: '🏆', descripcion: 'Entrenamiento 100% adaptado con viandas.' }
 ];
@@ -123,10 +123,7 @@ function vaciarCarrito() {
   mostrarToast('🧹 Carrito vaciado');
 }
 
-// 12. CHECKOUT — Llama al Cloudflare Worker proxy para crear la preferencia de pago
-
-// ⚠️ IMPORTANTE: Reemplazar con la URL real de tu Cloudflare Worker desplegado
-const WORKER_URL = 'https://round-surf-b401.ruisotolautaro2007.workers.dev';
+// 12. CHECKOUT — Contingencia: solo pago por transferencia vía WhatsApp
 
 function finalizarCompra() {
   if (carrito.length === 0) { mostrarToast('⚠️ Tu carrito está vacío'); return; }
@@ -147,96 +144,49 @@ function finalizarCompra() {
   checkoutModal.classList.add('open');
 }
 
-// Procesar el pago: se dispara al enviar el formulario de checkout
-async function procesarPago(e) {
-  e.preventDefault();
+function cerrarCheckoutModal() { checkoutModal.classList.remove('open'); }
 
+// 13. PAGAR POR TRANSFERENCIA (WhatsApp)
+// Valida el formulario y abre WhatsApp con un mensaje dinámico detallando el pedido.
+function pagarPorTransferencia() {
   const errorEl = document.getElementById('checkout-error');
-  const payBtn = document.getElementById('pay-btn');
   errorEl.textContent = '';
 
-  // 1. Validar nombre y apellido
+  // Validar nombre
   const nombre = document.getElementById('checkout-nombre').value.trim();
   const apellido = document.getElementById('checkout-apellido').value.trim();
-  if (!nombre) {
-    errorEl.textContent = '⚠️ Ingresá tu nombre.';
-    return;
-  }
-  if (!apellido) {
-    errorEl.textContent = '⚠️ Ingresá tu apellido.';
-    return;
-  }
+  if (!nombre) { errorEl.textContent = '⚠️ Ingresá tu nombre.'; return; }
+  if (!apellido) { errorEl.textContent = '⚠️ Ingresá tu apellido.'; return; }
 
-  // 2. Validar email
+  // Validar email
   const email = document.getElementById('checkout-email').value.trim();
-  if (!email || !email.includes('@')) {
-    errorEl.textContent = '⚠️ Ingresá un email válido.';
-    return;
-  }
+  if (!email || !email.includes('@')) { errorEl.textContent = '⚠️ Ingresá un email válido.'; return; }
 
-  // 3. Validar género si Plan 3 está en el carrito
+  // Validar género si Plan 3 está en el carrito
   const tienePlan3 = carrito.some(item => item.id === 'plan-3');
   let genero = null;
   if (tienePlan3) {
     const generoRadio = document.querySelector('input[name="genero"]:checked');
-    if (!generoRadio) {
-      errorEl.textContent = '⚠️ Seleccioná el género para tu rutina.';
-      return;
-    }
+    if (!generoRadio) { errorEl.textContent = '⚠️ Seleccioná el género para tu rutina.'; return; }
     genero = generoRadio.value;
   }
 
-  // 4. Armar los datos para el Worker
-  const payload = {
-    items: carrito.map(item => ({
-      id: item.id,
-      title: item.nombre,
-      description: item.descripcion,
-      quantity: item.cantidad,
-      unit_price: item.precio
-    })),
-    email: email,
-    first_name: nombre,
-    last_name: apellido,
-    genero: genero
-  };
+  // Construir el mensaje
+  let msg = '¡Hola! Quiero pagar por transferencia 👋\n\n';
+  msg += 'Nombre: ' + nombre + ' ' + apellido + '\n';
+  msg += 'Email: ' + email + '\n';
+  if (genero) { msg += 'Género (rutina): ' + (genero === 'hombre' ? '🏋️ Hombre' : '💪 Mujer') + '\n'; }
+  msg += '\nDetalle del pedido:\n';
+  carrito.forEach(item => {
+    msg += '• ' + item.nombre + ' x' + item.cantidad + ' — ' + formatearPrecio(item.precio * item.cantidad) + '\n';
+  });
+  msg += '\nTotal: ' + formatearPrecio(calcularTotal()) + '\n';
+  msg += '¡Gracias!';
 
-  // 5. Estado de carga
-  const textoOriginal = payBtn.textContent;
-  payBtn.textContent = 'Procesando...';
-  payBtn.disabled = true;
-
-  try {
-    // 5. Llamar al Worker proxy
-    const response = await fetch(WORKER_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Error al procesar el pago');
-    }
-
-    if (!data.init_point) {
-      throw new Error('No se recibió la URL de pago');
-    }
-
-    // 6. Redirigir al checkout de Mercado Pago
-    mostrarToast('✅ Redirigiendo a Mercado Pago...');
-    window.location.href = data.init_point;
-
-  } catch (err) {
-    console.error('Error de pago:', err);
-    errorEl.textContent = '❌ ' + (err.message || 'Error de conexión. Intentá de nuevo.');
-    payBtn.textContent = textoOriginal;
-    payBtn.disabled = false;
-  }
+  // Abrir WhatsApp
+  const url = 'https://wa.me/5491126634792?text=' + encodeURIComponent(msg);
+  window.open(url, '_blank');
 }
-
-function cerrarCheckoutModal() { checkoutModal.classList.remove('open'); }
 
 // 14. TOAST NOTIFICATION
 let toastTimeout;
@@ -273,8 +223,9 @@ document.addEventListener('DOMContentLoaded', () => {
   checkoutModal.addEventListener('click', (e) => { if (e.target === checkoutModal) cerrarCheckoutModal(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { cerrarCarrito(); cerrarCheckoutModal(); } });
 
-  // Formulario de checkout → procesar pago
-  document.getElementById('checkout-form').addEventListener('submit', procesarPago);
+  // Prevenir submit accidental del formulario (ya no hay botón submit)
+  document.getElementById('checkout-form').addEventListener('submit', (e) => e.preventDefault());
+  document.getElementById('wpp-transfer-btn').addEventListener('click', pagarPorTransferencia);
 
   actualizarCarritoUI();
 
@@ -285,5 +236,43 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }, { threshold: 0.1 });
   document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
-});
 
+  // 18. EFECTO TYPING en el Hero
+  const typingEl = document.getElementById('typing-text');
+  if (typingEl) {
+    const words = ['rutinas automáticas', 'planes personalizados', 'asesoría deportiva'];
+    let wordIdx = 0;
+    let charIdx = 0;
+    let isDeleting = false;
+
+    // Si el usuario prefiere movimiento reducido, mostrar texto estático
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      typingEl.textContent = words[0];
+    } else {
+      function typeStep() {
+        const currentWord = words[wordIdx];
+        if (!isDeleting) {
+          typingEl.textContent = currentWord.substring(0, charIdx + 1);
+          charIdx++;
+          if (charIdx === currentWord.length) {
+            isDeleting = true;
+            setTimeout(typeStep, 2000); // pausa al completar
+            return;
+          }
+          setTimeout(typeStep, 80);
+        } else {
+          typingEl.textContent = currentWord.substring(0, charIdx - 1);
+          charIdx--;
+          if (charIdx === 0) {
+            isDeleting = false;
+            wordIdx = (wordIdx + 1) % words.length;
+            setTimeout(typeStep, 400); // pausa antes de la siguiente palabra
+            return;
+          }
+          setTimeout(typeStep, 40);
+        }
+      }
+      typeStep();
+    }
+  }
+});

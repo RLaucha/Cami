@@ -223,8 +223,10 @@ button {
   padding: 6rem 2rem 4rem;
   position: relative;
   overflow: hidden;
+  background: url('img/fondopagina.png') center center / cover no-repeat fixed;
 }
 
+/* Dark overlay for text legibility */
 .hero::before {
   content: '';
   position: absolute;
@@ -232,10 +234,23 @@ button {
   left: 0;
   width: 100%;
   height: 100%;
-  background:
-    radial-gradient(ellipse at 20% 50%, rgba(255, 255, 0, 0.06) 0%, transparent 60%),
-    radial-gradient(ellipse at 80% 20%, rgba(255, 255, 0, 0.04) 0%, transparent 50%);
+  background: rgba(0, 0, 0, 0.38);
   pointer-events: none;
+  z-index: 0;
+}
+
+/* Subtle vignette for extra depth */
+.hero::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, 0.45) 100%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .hero__content {
@@ -932,9 +947,11 @@ button {
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 3rem 2.5rem;
+  padding: 3rem 2.5rem 2rem;
   max-width: 480px;
   width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
   text-align: center;
   transform: scale(0.9);
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -982,7 +999,9 @@ button {
   letter-spacing: 0.5px;
 }
 
-.checkout-form__field input[type="email"] {
+.checkout-form__field input[type="email"],
+.checkout-form__field input[type="text"],
+.checkout-form__field input[type="tel"] {
   width: 100%;
   padding: 0.9rem 1rem;
   background: var(--color-bg);
@@ -994,7 +1013,9 @@ button {
   transition: var(--transition);
 }
 
-.checkout-form__field input[type="email"]:focus {
+.checkout-form__field input[type="email"]:focus,
+.checkout-form__field input[type="text"]:focus,
+.checkout-form__field input[type="tel"]:focus {
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 12px rgba(255, 255, 0, 0.15);
@@ -1069,6 +1090,50 @@ button {
   cursor: wait;
   transform: none;
   box-shadow: none;
+}
+
+/* Separator - "o también" */
+.checkout-separator {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.2rem 0;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.checkout-separator::before,
+.checkout-separator::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}
+
+/* WhatsApp Transfer Button */
+.checkout-modal__wpp-btn {
+  width: 100%;
+  padding: 1rem;
+  background: #00e676;
+  color: #0a0a0a;
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 0 20px rgba(0, 230, 118, 0.2);
+}
+
+.checkout-modal__wpp-btn:hover {
+  box-shadow: 0 0 40px rgba(0, 230, 118, 0.4);
+  transform: translateY(-2px);
+  background: #00c853;
 }
 
 .checkout-modal__close {
@@ -1461,5 +1526,160 @@ button {
 
   .landing-benefits__grid {
     grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ---------- Mobile: parallax fallback & layout ---------- */
+@media (max-width: 768px) {
+  .hero {
+    background-attachment: scroll;          /* iOS doesn't support fixed */
+    min-height: 100svh;                     /* safer viewport unit */
+  }
+
+  .navbar__links { display: none; }
+  .navbar__hamburger { display: flex; }
+
+  .stats__inner {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .plans__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .testimonials__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+   ANIMATION SYSTEM
+   ============================================ */
+
+/* ---------- Keyframes ---------- */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.05); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(30px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ---------- Typing cursor ---------- */
+.typing-text {
+  color: var(--color-primary);
+  font-weight: 900;
+}
+
+.typing-cursor {
+  display: inline-block;
+  color: var(--color-primary);
+  font-weight: 300;
+  animation: blink 0.7s step-end infinite;
+  margin-left: 2px;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0; }
+}
+
+/* ---------- Hero badge float ---------- */
+.hero__badge {
+  animation: badgeFloat 3s ease-in-out infinite;
+}
+
+@keyframes badgeFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+
+/* ---------- Scroll reveal (cascade) ---------- */
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-on-scroll.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Staggered delays for plan cards */
+.plans__grid .plan-card:nth-child(1) { transition-delay: 0s; }
+.plans__grid .plan-card:nth-child(2) { transition-delay: 0.15s; }
+.plans__grid .plan-card:nth-child(3) { transition-delay: 0.3s; }
+
+/* ---------- WhatsApp button glow sweep ---------- */
+.checkout-modal__wpp-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.checkout-modal__wpp-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.35),
+    transparent
+  );
+  animation: glowSweep 3s ease-in-out infinite;
+}
+
+@keyframes glowSweep {
+  0%, 100% { left: -100%; }
+  50%      { left: 120%; }
+}
+
+/* ============================================
+   ACCESSIBILITY: Reduced Motion
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-on-scroll {
+    opacity: 1;
+    transform: none;
+  }
+
+  .typing-cursor {
+    animation: none;
+    opacity: 1;
+  }
+
+  .hero__badge {
+    animation: none;
+  }
+
+  .checkout-modal__wpp-btn::after {
+    animation: none;
+    display: none;
   }
 }
