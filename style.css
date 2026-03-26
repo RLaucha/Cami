@@ -1306,6 +1306,16 @@ button {
 
   .cart-sidebar {
     width: 100vw;
+    height: 85vh;
+    max-height: 85vh;
+  }
+
+  .cart-sidebar__items {
+    overflow-y: auto;
+  }
+
+  .cart-sidebar__footer {
+    padding-bottom: 2.5rem;
   }
 }
 
